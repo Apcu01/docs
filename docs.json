@@ -13,6 +13,11 @@
       {
         "anchor": "Ana Sayfa",
         "icon": "house",
+        "href": "/"
+      },
+      {
+        "anchor": "Ana Sayfa",
+        "icon": "house",
         "href": "/index"
       }
     ]

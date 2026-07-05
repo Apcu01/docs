@@ -1,51 +1,42 @@
 ---
-title: "LeaderOS SessionCheck: Kick Players on Password Change"
-sidebarTitle: "Home"
-description: "LeaderOS SessionCheck is a Velocity proxy plugin that kicks players and clears LimboAuth sessions when a password is changed or reset on the web panel."
+title: "Minefox Studio Dokümantasyonu"
+sidebarTitle: "Ana Sayfa"
+description: "Minefox Studio tarafından geliştirilen Minecraft eklentileri ve web panelleri için resmi dokümantasyon."
+hidden: true
 ---
 
-LeaderOS SessionCheck closes a critical security gap on LeaderOS-powered Minecraft servers: when a player changes or resets their password through the web panel, any session already active on the game server is immediately terminated. Without this plugin, a stolen account's hijacker can remain connected even after the legitimate owner regains access.
+**Minefox Studio**, Minecraft sunucuları için güvenlik, yönetim ve yetkili takip çözümleri geliştirir. Bu dokümantasyon sitesi, tüm ürünlerimizin kurulum, yapılandırma ve kullanım rehberlerini içerir.
+
+## Ürünlerimiz
 
 <CardGroup cols={2}>
-  <Card title="How It Works" icon="gears" href="/how-it-works">
-    Understand the detection and kick flow before you install
+  <Card title="LeaderOS SessionCheck" icon="shield-halved" href="/introduction">
+    LeaderOS web panelinde şifre değişikliği yapıldığında aktif oyun oturumlarını anında sonlandıran Velocity eklentisi. LimboAuth ile birlikte oyuncu hesaplarını korur.
   </Card>
-  <Card title="Installation" icon="download" href="/installation">
-    Step-by-step setup for LeaderOS and your Velocity server
-  </Card>
-  <Card title="Configuration" icon="sliders" href="/configuration">
-    Database connection, check interval, and kick message options
-  </Card>
-  <Card title="LimboAuth Integration" icon="shield-check" href="/limboauth-integration">
-    Clear LimboAuth sessions alongside the proxy kick
+
+  <Card title="FoxStaffTracker" icon="user-shield" href="/foxstafftracker/introduction">
+    Minecraft sunucularında yetkilileri takip etmek için geliştirilmiş kapsamlı sistem. Eklenti ve web panelden oluşur, ortak MySQL üzerinden çalışır.
   </Card>
 </CardGroup>
 
-## Why You Need This
+## Nereden başlamalıyım?
 
-LeaderOS handles account management on the web side, but it has no built-in channel to notify the Minecraft proxy when credentials change. This means:
+Sol taraftaki menüden ürününüzü seçin ve **Introduction** sayfasından başlayın. Her ürünün kendi kurulum rehberi, yapılandırma referansı ve sık karşılaşılan sorunlar bölümü mevcuttur.
 
-- A player whose account was stolen changes their password on the website.
-- The attacker is **still connected** to the game server with the old session.
-- The legitimate owner cannot reclaim their session until the attacker disconnects.
+<CardGroup cols={2}>
+  <Card title="Kurulum Rehberleri" icon="download">
+    Adım adım kurulum talimatlarıyla eklentileri sunucunuza dakikalar içinde entegre edin.
+  </Card>
 
-LeaderOS SessionCheck bridges that gap by polling a shared database table and forcibly disconnecting any affected player within seconds.
+  <Card title="Yapılandırma" icon="gear">
+    `config.yml` referansları ve tüm ayarların açıklamalarıyla ürünleri sunucunuza göre özelleştirin.
+  </Card>
 
-<Steps>
-  <Step title="Patch LeaderOS">
-    Add two small PHP snippets to `SettingsController.php` and `ResetPasswordController.php` so password events are recorded in the database.
-  </Step>
-  <Step title="Install the plugin">
-    Drop the `.jar` into your Velocity server's `plugins/` folder.
-  </Step>
-  <Step title="Configure the plugin">
-    Edit `plugins/leaderos-sessioncheck/config.yml` with your database credentials and preferred check interval.
-  </Step>
-  <Step title="Restart and verify">
-    Restart the Velocity proxy. The plugin logs its status on startup, confirming the database connection and LimboAuth integration state.
-  </Step>
-</Steps>
+  <Card title="Sorun Giderme" icon="wrench">
+    Karşılaştığınız hataları hızlıca çözmek için troubleshooting bölümlerine göz atın.
+  </Card>
 
-<Note>
-  LeaderOS SessionCheck runs entirely on your Velocity proxy and communicates with the same MySQL database used by LeaderOS. No external services, no API keys, no cloud dependencies.
-</Note>
+  <Card title="Destek" icon="life-ring" href="https://github.com/Apcu01">
+    GitHub üzerinden sorularınızı iletin veya hata bildirin.
+  </Card>
+</CardGroup>
