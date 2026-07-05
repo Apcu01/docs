@@ -9,80 +9,11 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "products": [
+    "anchors": [
       {
-        "product": "LeaderOS SessionCheck",
-        "href": "/introduction",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": [
-              "introduction",
-              "how-it-works",
-              "installation"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "configuration",
-              "limboauth-integration"
-            ]
-          },
-          {
-            "group": "Help",
-            "pages": [
-              "troubleshooting",
-              "faq"
-            ]
-          }
-        ]
-      },
-      {
-        "product": "FoxStaffTracker",
-        "href": "/foxstafftracker/introduction",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": [
-              "foxstafftracker/introduction",
-              "foxstafftracker/requirements",
-              "foxstafftracker/installation",
-              "foxstafftracker/multi-server"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "foxstafftracker/configuration",
-              "foxstafftracker/report-system"
-            ]
-          },
-          {
-            "group": "Usage",
-            "pages": [
-              "foxstafftracker/commands",
-              "foxstafftracker/permissions",
-              "foxstafftracker/defining-staff",
-              "foxstafftracker/placeholderapi",
-              "foxstafftracker/integrations"
-            ]
-          },
-          {
-            "group": "Web Panel",
-            "pages": [
-              "foxstafftracker/web-panel/installation",
-              "foxstafftracker/web-panel/pages",
-              "foxstafftracker/database-tables"
-            ]
-          },
-          {
-            "group": "Help",
-            "pages": [
-              "foxstafftracker/troubleshooting"
-            ]
-          }
-        ]
+        "anchor": "Ana Sayfa",
+        "icon": "house",
+        "href": "/index"
       }
     ]
   },
