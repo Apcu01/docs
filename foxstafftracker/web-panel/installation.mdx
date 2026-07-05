@@ -1,0 +1,60 @@
+---
+title: "FoxStaffTracker Web Panel Kurulumu"
+sidebarTitle: "Panel Installation"
+description: "FoxStaffTracker Next.js web panelinin .env yapılandırması, bağımlılık kurulumu ve pm2 ile sürekli çalıştırma adımları."
+---
+
+<Steps>
+  <Step title=".env dosyasını oluşturun">
+    Panel klasörüne (`site/`) girin ve `.env` dosyasını oluşturun:
+
+    ```bash
+    cp .env.example .env      # Windows: copy .env.example .env
+    ```
+  </Step>
+  <Step title=".env içini doldurun">
+    ```env
+    DATABASE_URL="mysql://kullanici:sifre@host:3306/veritabani"
+    PORT="4000"
+    PANEL_KEY="gizli-bir-anahtar"
+    ```
+
+    <Note>
+      `DATABASE_URL`, eklentiyle **aynı** veritabanını göstermelidir.
+    </Note>
+  </Step>
+  <Step title="Bağımlılıkları kurun">
+    Bir defa çalıştırın:
+
+    ```bash
+    npm ci --omit=dev --ignore-scripts
+    ```
+  </Step>
+  <Step title="Paneli başlatın">
+    ```bash
+    npm start
+    ```
+
+    Panel `http://SUNUCU_IP:PORT` adresinde açılır. Girişte `PANEL_KEY` sorulur.
+  </Step>
+</Steps>
+
+<Tip>
+  Panelin sürekli çalışması için `pm2` önerilir:
+
+  ```bash
+  pm2 start npm --name foxstaff -- start && pm2 save
+  ```
+</Tip>
+
+## Ortam Değişkenleri (.env)
+
+| Değişken | Zorunlu | Açıklama |
+| --- | --- | --- |
+| `DATABASE_URL` | Evet | `mysql://kullanici:sifre@host:port/veritabani` — eklentiyle aynı DB |
+| `PANEL_KEY` | Evet | Panele giriş anahtarı |
+| `PORT` | Hayır | Panel portu (varsayılan 3000) |
+
+<Warning>
+  Şifrede özel karakter (`@ : / # ?`) varsa URL-encode edin (`@` → `%40`).
+</Warning>

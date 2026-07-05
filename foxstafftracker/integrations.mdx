@@ -1,0 +1,15 @@
+---
+title: "FoxStaffTracker Entegrasyonları"
+sidebarTitle: "Integrations"
+description: "FoxStaffTracker'ın opsiyonel entegrasyonları: LuckPerms, LiteBans, EssentialsX, PlaceholderAPI ve Discord webhook."
+---
+
+Tümü **opsiyoneldir**; kurulu değilse ilgili özellik sessizce devre dışı kalır.
+
+| Entegrasyon | Ne sağlar? | Nasıl aktif olur? |
+| --- | --- | --- |
+| **LuckPerms** | Yetkilinin rütbesini otomatik okur (hedef eşleşmesi) | Kuruluysa otomatik |
+| **LiteBans** | Ban/kick/mute gibi moderasyon işlemlerini loglar | `litebans.enabled: true` \+ LiteBans kurulu |
+| **EssentialsX** | `/afk` durumunu AFK tespitine katar | `afk.use_essentials: true` \+ Essentials kurulu |
+| **PlaceholderAPI** | `%foxstaff_...%` placeholder'ları | Kuruluysa otomatik |
+| **Discord** | Rapor/moderasyon/giriş-çıkış webhook bildirimleri | `discord.enabled: true` \+ `webhook_url` |

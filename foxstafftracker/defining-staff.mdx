@@ -1,0 +1,24 @@
+---
+title: "FoxStaffTracker'da Yetkili Nasıl Tanımlanır?"
+sidebarTitle: "Defining Staff"
+description: "FoxStaffTracker'da bir oyuncunun 'takip edilen yetkili' olarak nasıl tanımlandığı: config listesi ve izin tabanlı iki yöntem."
+---
+
+Bir oyuncu şu iki yoldan biriyle "takip edilen yetkili" olur:
+
+<Steps>
+  <Step title="Config listesi">
+    `config.yml` → `staffs:` altında adı veya UUID'si yazılıysa.
+
+    ```yaml
+    staffs:
+      - "Apcu0"
+      - "uuid-degeri"
+    ```
+  </Step>
+  <Step title="İzin">
+    `foxstafftracker.staff` iznine sahipse (örn. bir LuckPerms grubuna verilerek).
+  </Step>
+</Steps>
+
+İki yöntem birlikte kullanılabilir. Yetkilinin **rütbesi**, LuckPerms kuruluysa birincil grubundan otomatik okunur (aktivite hedefleri bununla eşleşir).

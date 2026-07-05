@@ -1,0 +1,21 @@
+---
+title: "FoxStaffTracker Raporlama Sistemi (report_system)"
+sidebarTitle: "Report System"
+description: "FoxStaffTracker rapor GUI'lerinin başlık, boyut, filler blok ve şikayet sebeplerini nasıl özelleştireceğiniz."
+---
+
+`report_system` altında rapor GUI'lerinin başlığı, boyutu, dolgu (filler) blokları, öğe adları ve **şikayet sebepleri** tamamen özelleştirilebilir. Üç GUI vardır:
+
+- `staff_selection` — şikayet edilecek yetkilinin seçildiği ekran.
+- `reason_selection` — şikayet sebebinin seçildiği ekran (`reasons` altından düzenlenir).
+- `confirmation` — onay ekranı (onayla / iptal / açıklamayı yeniden yaz).
+
+## Renk kodları ve placeholder'lar
+
+Renk kodları `&` ile (`&c`, `&#RRGGBB` hex desteklenir).
+
+Kullanılabilir placeholder'lar:
+
+- `%staff%` — şikayet edilen yetkilinin adı
+- `%role%` — yetkilinin rütbesi
+- `%description%` — oyuncunun yazdığı açıklama

@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "name": "LeaderOS SessionCheck",
+  "name": "Minefox Studio Docs",
   "theme": "aspen",
   "colors": {
     "primary": "#2D7D46",
@@ -9,28 +9,14 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "groups": [
+    "products": [
       {
-        "group": "Get Started",
-        "pages": [
-          "introduction",
-          "how-it-works",
-          "installation"
-        ]
+        "product": "LeaderOS SessionCheck",
+        "href": "/introduction"
       },
       {
-        "group": "Configuration",
-        "pages": [
-          "configuration",
-          "limboauth-integration"
-        ]
-      },
-      {
-        "group": "Help",
-        "pages": [
-          "troubleshooting",
-          "faq"
-        ]
+        "product": "FoxStaffTracker",
+        "href": "/foxstafftracker/introduction"
       }
     ]
   },

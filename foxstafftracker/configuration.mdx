@@ -1,0 +1,105 @@
+---
+title: "FoxStaffTracker Yapılandırma Referansı (config.yml)"
+sidebarTitle: "Configuration"
+description: "FoxStaffTracker config.yml dosyasının tüm alanları: lisans, takip edilen yetkililer, server-name, oynama süresi, AFK, LiteBans, Discord, aktivite hedefleri, depolama ve MySQL ayarları."
+---
+
+## Lisans
+
+```yaml
+anahtar: ""   # Ürün lisans anahtarınız
+```
+
+## Takip Edilen Yetkililer
+
+```yaml
+staffs:
+  - "Apcu0"          # oyuncu adı
+  - "uuid-degeri"    # veya UUID
+```
+
+Bu listedeki oyuncular takip edilir. Alternatif olarak `foxstafftracker.staff` izni verilen oyuncular da otomatik takip edilir.
+
+## Sunucu Adı (Oyun Modu)
+
+```yaml
+server-name: "unknown"   # Çoklu sunucuda HER sunucuda FARKLI olmalı: skyblock / towny / survival
+```
+
+## Oynama Süresi
+
+```yaml
+playtime:
+  tick_minutes: 1   # Süre sayaclarının kaç dakikada bir artacağı
+```
+
+## AFK Ayarları
+
+```yaml
+afk:
+  enabled: true            # AFK yetkilinin süresi artmasın
+  threshold_minutes: 5     # Kaç dk hareketsizlikte AFK sayılır
+  use_essentials: true     # EssentialsX /afk durumunu da dikkate al
+```
+
+AFK sinyalleri: hareket (blok değişimi), etkileşim, mesaj, komut. Kafa çevirme aktivite sayılmaz.
+
+## LiteBans Entegrasyonu
+
+```yaml
+litebans:
+  enabled: false   # LiteBans ile moderasyon loglarını çek
+```
+
+## Discord Webhook
+
+```yaml
+discord:
+  enabled: false
+  webhook_url: ""          # Discord kanal webhook URL'i
+  events:
+    report: true           # yeni yetkili şikayeti
+    moderation: true       # ban/kick/mute vb. (LiteBans gerekli)
+    staff_join: false      # yetkili giriş yaptı
+    staff_quit: false      # yetkili çıkış yaptı
+```
+
+## Aktivite Hedefleri
+
+```yaml
+requirements:      # SAAT cinsinden minimum hedefler (role göre)
+  daily:
+    kurucu: 5
+    admin: 2
+  weekly:
+    kurucu: 10
+    admin: 5
+  monthly:
+    admin: 20
+```
+
+Rol adları LuckPerms birincil grubuyla eşleşir. Panelde "hedefe ulaştı / altında" olarak gösterilir.
+
+## Depolama
+
+```yaml
+storage:
+  type: YAML   # YAML veya MYSQL — panel/çoklu sunucu için MYSQL zorunlu
+```
+
+## MySQL
+
+```yaml
+mysql:
+  host: "localhost"
+  port: 3306
+  database: "minecraft"
+  username: "root"
+  password: ""
+  pool:
+    maximum_pool_size: 10
+    minimum_idle: 2
+    connection_timeout: 30000
+    idle_timeout: 600000
+    max_lifetime: 1800000   # MySQL wait_timeout'tan düşük olmalı
+```

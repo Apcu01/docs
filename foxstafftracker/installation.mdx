@@ -1,0 +1,27 @@
+---
+title: "FoxStaffTracker Eklenti Kurulumu"
+sidebarTitle: "Installation"
+description: "FoxStaffTracker eklentisini Paper sunucunuza kurmak için adım adım rehber: jar yerleştirme, config.yml oluşturma ve MySQL bağlantısı."
+---
+
+<Steps>
+  <Step title="Jar dosyasını yerleştirin">
+    `FoxStaffTracker-1.0.jar` dosyasını sunucunun `plugins/` klasörüne atın.
+  </Step>
+  <Step title="Config'i oluşturun">
+    Sunucuyu bir kez başlatıp kapatın; `plugins/FoxStaffTracker/config.yml` oluşur.
+  </Step>
+  <Step title="Config.yml'yi doldurun">
+    En az şunları ayarlayın:
+
+    - `anahtar:` → lisans anahtarınız.
+    - `storage.type: MYSQL`
+    - `mysql:` → veritabanı bilgileri.
+    - `staffs:` → takip edilecek yetkililer (veya `foxstafftracker.staff` izni).
+
+    Ayrıntılar için [Configuration Reference](/foxstafftracker/configuration) sayfasına bakın.
+  </Step>
+  <Step title="Sunucuyu tekrar başlatın">
+    Gerekli tablolar otomatik oluşturulur.
+  </Step>
+</Steps>

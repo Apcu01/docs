@@ -1,0 +1,19 @@
+---
+title: "FoxStaffTracker İzinleri (Permissions)"
+sidebarTitle: "Permissions"
+description: "FoxStaffTracker'ın foxstafftracker.use, foxstafftracker.report, foxstafftracker.staff izinleri ve varsayılan değerleri."
+---
+
+| İzin | Varsayılan | Açıklama |
+| --- | --- | --- |
+| `foxstafftracker.use` | `true` (herkes) | `/yetkili` komutunu kullanma |
+| `foxstafftracker.report` | `op` | `/yetkilibildir` ile şikayet açma |
+| `foxstafftracker.staff` | `op` | Bu oyuncunun **yetkili olarak takip edilmesi** |
+
+<Tip>
+  Normal oyuncuların yetkili şikayeti açabilmesi için `foxstafftracker.report` iznini varsayılan gruba vermeniz gerekebilir:
+
+  ```text
+  /lp group default permission set foxstafftracker.report true
+  ```
+</Tip>

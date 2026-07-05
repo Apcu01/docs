@@ -1,0 +1,52 @@
+---
+title: "FoxStaffTracker Komutları"
+sidebarTitle: "Commands"
+description: "FoxStaffTracker komutlarının tam listesi: /yetkili sıralama, /yetkili bilgi, /yetkilibildir ve alias'ları."
+---
+
+| Komut | Alias | İzin | Açıklama |
+| --- | --- | --- | --- |
+| `/yetkili` | `/staff`, `/ys` | `foxstafftracker.use` | Ana komut (sıralama/bilgi) |
+| `/yetkilibildir` | `/reportstaff`, `/yb` | `foxstafftracker.report` | Yetkili şikayet GUI'sini açar |
+
+## `/yetkili sıralama`
+
+```text
+/yetkili sıralama <oynama-süresi|mesaj> <günlük|haftalık|aylık|kalıcı>
+```
+
+Seçilen tür ve döneme göre **ilk 10** yetkiliyi sıralar.
+
+- **Tür:** `oynama-süresi` (veya "oynama" içeren) / `mesaj`
+- **Dönem:** `günlük` / `haftalık` / `aylık` / `kalıcı`
+
+**Örnek:** `/yetkili sıralama oynama-süresi haftalık`
+
+## `/yetkili bilgi`
+
+```text
+/yetkili bilgi <oyuncu|ben>
+```
+
+Bir yetkilinin süre ve mesaj istatistiklerini \+ son mesajlarını gösterir. `ben` yazan oyuncu kendi bilgisini görür.
+
+**Örnek:** `/yetkili bilgi Apcu0` • `/yetkili bilgi ben`
+
+## `/yetkilibildir`
+
+Adımlı bir şikayet GUI'si açar:
+
+<Steps>
+  <Step title="Yetkili seç">
+    Şikayet edilecek yetkiliyi seçin.
+  </Step>
+  <Step title="Sebep seç">
+    Şikayet sebebini seçin.
+  </Step>
+  <Step title="Açıklama yaz">
+    Açıklamayı **sohbete yazın** (30 sn içinde).
+  </Step>
+  <Step title="Onayla">
+    Onayla → rapor veritabanına ve (aktifse) Discord'a gider.
+  </Step>
+</Steps>

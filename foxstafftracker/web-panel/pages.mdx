@@ -1,0 +1,23 @@
+---
+title: "FoxStaffTracker Web Panel Sayfaları"
+sidebarTitle: "Panel Pages"
+description: "FoxStaffTracker web panelindeki tüm sayfalar: dashboard, yetkililer, yetkili detayı, aktivite raporları, sohbet ve komut kayıtları, moderasyon, şikayetler ve giriş."
+---
+
+## Sayfalar
+
+| Yol | Sayfa | İçerik |
+| --- | --- | --- |
+| `/` | Dashboard | Aktif yetkili sayısı, bekleyen şikayet, toplam ceza, haftanın liderleri, son moderasyonlar |
+| `/staff` | Yetkililer | Tüm yetkililer; isim/rütbe/durum filtresi, süreye göre sıralama |
+| `/staff/[uuid]` | Yetkili Detayı | Süre/mesaj istatistikleri, **oyun modu dağılımı**, aktiflik grafiği, son log'lar |
+| `/activity` | Raporlar | **Haftalık/aylık** aktiflik \+ hedef durumu (ulaştı/altında) |
+| `/chat-logs` | Sohbet Kayıtları | Yetkili sohbet mesajları (filtreli) |
+| `/command-logs` | Komut Kayıtları | Yetkili komutları (filtreli) |
+| `/moderation` | Moderasyon | Ceza kayıtları |
+| `/reports` | Şikayetler | Oyuncu şikayetleri ve detayları |
+| `/login` | Giriş | Tek anahtarla (`PANEL_KEY`) giriş |
+
+## Giriş (Kimlik Doğrulama)
+
+Panel, tek bir **erişim anahtarı** ile korunur. `.env` içindeki `PANEL_KEY` değerini bilen kişi girebilir; girişsiz hiçbir sayfa açılmaz. Sağ üstteki butonla çıkış yapılır.
