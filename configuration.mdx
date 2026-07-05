@@ -1,5 +1,5 @@
 ---
-title: "Configure LeaderOS SessionCheck: Database and Plugin Settings"
+title: "LeaderOS SessionCheck: Database and Plugin Settings"
 sidebarTitle: "Configuration"
 description: "Full reference for the LeaderOS SessionCheck config.yml — database connection, check interval, debug mode, LimboAuth toggle, and custom kick messages."
 ---
@@ -54,7 +54,7 @@ These settings tell the plugin how to connect to the MySQL database where Leader
 </ParamField>
 
 <ParamField path="database.pool-size" type="number" default="3">
-  The number of connections maintained in the HikariCP connection pool. A value of `3` is sufficient for most servers; increase it only if you observe connection contention under heavy load.
+  The number of database connections kept open by the connection pool. A value of `3` is sufficient for most servers; increase it only if you observe connection contention under heavy load.
 </ParamField>
 
 <ParamField path="database.connection-timeout" type="number" default="10000">
@@ -78,12 +78,12 @@ These settings tell the plugin how to connect to the MySQL database where Leader
 ## LimboAuth Toggle
 
 <ParamField path="limboauth" type="boolean" default="true">
-  Whether to call `LimboAuth.removePlayerFromCache(username)` after kicking a player. Set this to `true` if your proxy uses the LimboAuth plugin, so the player's authentication session is fully invalidated and they must log in again on reconnect. Set it to `false` if your server does not use LimboAuth. See the [LimboAuth Integration](/limboauth-integration) page for full details.
+  Whether to clear a player's LimboAuth session cache after kicking them. Set this to `true` if your proxy uses the LimboAuth plugin, so the player's authentication session is fully invalidated and they must log in again on reconnect. Set it to `false` if your server does not use LimboAuth. See the [LimboAuth Integration](/limboauth-integration) page for full details.
 </ParamField>
 
 ## Messages
 
-<ParamField path="messages.kick-message" type="string">
+<ParamField path="messages.kick-message" type="string" default="<red>Şifreniz değiştirildi. Lütfen yeni şifrenizle tekrar giriş yapın.</red>">
   The message displayed to a player when they are kicked because their password was changed or reset. This field supports [MiniMessage](https://docs.advntr.dev/minimessage/format.html) formatting tags such as `<red>`, `<bold>`, and `<gold>`.
 
   The default value is a Turkish message meaning: *"Your password was changed. Please log in again with your new password."*

@@ -28,21 +28,21 @@ This page answers the most common questions about LeaderOS SessionCheck — cove
       check-interval-seconds: 10   # kick within ~10 seconds
     ```
 
-    The minimum is `1` second, but be mindful that a very low interval increases the frequency of database queries. For most servers, the default of `60` is a good balance.
+    The minimum enforced value is `1` second, but be mindful that a very low interval increases the frequency of database queries. For most servers, the default of `60` is a good balance.
   </Accordion>
 
   <Accordion title="What happens if the player is offline when their password is changed?">
-    If the player is not connected to the proxy at the time the plugin polls, no kick is issued — there is no one to kick. However, the row in `PasswordResets` is **not** deleted in this case; it stays in the table.
+    If the player is not connected to the proxy when the plugin polls, no kick is issued — there is no one to kick. However, **the row is still deleted from `PasswordResets`** on that same poll cycle. The plugin processes every row it fetches, removes them from the database, and if the player is offline, simply skips the kick step.
 
-    On the next poll cycle, the plugin checks again. If the player is still offline, the same row remains. This continues until the player reconnects and is online during a poll, at which point they are kicked immediately on that cycle and the row is then deleted.
+    If LimboAuth integration is enabled, the player's cached authentication session is also cleared at this point, regardless of whether they are online.
 
     <Warning>
-      There is no automatic expiry for rows in `PasswordResets`. If a player never reconnects, their row remains indefinitely. This is intentional — it ensures that even players who log in much later are still forced to re-authenticate with their new password.
+      Because the `PasswordResets` row is deleted even when the player is offline, there is no built-in mechanism to force a kick the next time the player connects. The kick only fires if the player is online during the poll cycle when their row is present. If you need to ensure a player is forced to re-authenticate after a password change, make sure the password change happens while the player is online, or use LimboAuth's own session management.
     </Warning>
   </Accordion>
 
   <Accordion title="Can this plugin run on Paper, Spigot, or BungeeCord?">
-    No. LeaderOS SessionCheck is built exclusively for **Velocity 3.x**. It uses the Velocity plugin API, Velocity's dependency injection system, and Velocity's task scheduler — none of which are available on Paper, Spigot, or BungeeCord. Attempting to load the `.jar` on any of those platforms will fail. Install the plugin only on your Velocity proxy.
+    No. LeaderOS SessionCheck is built exclusively for **Velocity 3.x**. It uses the Velocity plugin API and Velocity's task scheduler — none of which are available on Paper, Spigot, or BungeeCord. Attempting to load the `.jar` on any of those platforms will fail. Install the plugin only on your Velocity proxy.
   </Accordion>
 
   <Accordion title="Do I need to install this plugin on every backend server?">
@@ -50,7 +50,7 @@ This page answers the most common questions about LeaderOS SessionCheck — cove
   </Accordion>
 
   <Accordion title="Will a kicked player be kicked again when they reconnect?">
-    No. The plugin deletes the `PasswordResets` row immediately after kicking the player (or after confirming the row was processed). On the next poll cycle, that row is gone, so the plugin takes no action against that player again.
+    No. The plugin deletes the `PasswordResets` row during the same poll cycle that it was fetched — whether or not the player was online to be kicked. On the next poll cycle, that row is gone, so the plugin takes no further action against that player.
 
     When the player reconnects, they will be prompted to authenticate with their new password by LimboAuth (or whichever authentication plugin you use). If they enter the correct new password, they proceed normally.
   </Accordion>
@@ -63,10 +63,10 @@ This page answers the most common questions about LeaderOS SessionCheck — cove
     | `SELECT`   | `PasswordResets` | Fetch pending reset rows on each poll       |
     | `DELETE`   | `PasswordResets` | Remove processed rows after acting on them  |
 
-    The simplest approach is to grant full access to the LeaderOS database:
+    The simplest approach is to grant these on the LeaderOS database:
 
     ```sql
-    GRANT SELECT, INSERT, DELETE ON leaderos.* TO 'your_user'@'%';
+    GRANT SELECT, DELETE ON leaderos.* TO 'your_user'@'%';
     FLUSH PRIVILEGES;
     ```
 
@@ -80,7 +80,7 @@ This page answers the most common questions about LeaderOS SessionCheck — cove
   </Accordion>
 
   <Accordion title="The plugin shows Turkish messages in the console — is this normal?">
-    Yes, this is completely normal. The plugin's internal log messages are written in Turkish (the developer's native language). Messages such as `LimboAuth entegrasyonu etkin.` or `Oyuncu kickleniyor:` are informational console output only — they are never shown to players.
+    Yes, this is completely normal. The plugin's internal log messages are written in Turkish (the developer's native language). Messages such as `LimboAuth entegrasyonu etkin.` are informational console output only — they are never shown to players.
 
     The only message that players ever see is the `kick-message` value in your `config.yml`, and you can set that to any language or text you like:
 

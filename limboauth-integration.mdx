@@ -1,14 +1,14 @@
 ---
 title: "LimboAuth Integration: Clear Sessions After Password Change"
 sidebarTitle: "LimboAuth"
-description: "Enable LimboAuth integration in LeaderOS SessionCheck to automatically invalidate a player's authentication session when their password is changed or reset."
+description: "Enable LimboAuth integration in LeaderOS SessionCheck so players are fully forced to re-authenticate after a password change or reset from the web panel."
 ---
 
 LimboAuth is a popular authentication plugin for Velocity-based offline-mode servers that holds players in a limbo state until they log in with their password. When LeaderOS SessionCheck kicks a player after a password change, you also need to clear their LimboAuth session cache — otherwise the plugin may still consider them authenticated and let them reconnect without re-entering their new password. Enabling the LimboAuth integration ensures that the kick and the session invalidation happen together, so the player is fully forced to log in again.
 
 ## How It Works
 
-When `limboauth: true` is set in `config.yml` and the LimboAuth plugin is present on your proxy, LeaderOS SessionCheck locates the LimboAuth plugin instance at startup using Velocity's plugin manager and resolves the `removePlayerFromCache(String username)` method via reflection. Each time a password reset event is detected, the plugin kicks the player from the proxy and then immediately calls `LimboAuth.removePlayerFromCache(username)`. This clears the player's entry from LimboAuth's in-memory session cache, so when they reconnect they are sent back to the limbo world and must authenticate with their new password.
+When `limboauth: true` is set in `config.yml` and the LimboAuth plugin is present on your proxy, LeaderOS SessionCheck connects to LimboAuth at startup. Each time a password reset event is detected, the plugin kicks the player from the proxy and immediately clears their LimboAuth session cache. When they reconnect they are sent back to the limbo world and must authenticate with their new password.
 
 ## Enabling LimboAuth Integration
 
@@ -30,7 +30,7 @@ When `limboauth: true` is set in `config.yml` and the LimboAuth plugin is presen
     [LeaderOS-SessionCheck] LimboAuth entegrasyonu etkin.
     ```
 
-    That message confirms the plugin found LimboAuth and successfully resolved the session-clearing method.
+    That message confirms the plugin found LimboAuth and is ready to clear sessions on password change.
   </Step>
 </Steps>
 
@@ -52,7 +52,7 @@ The plugin prints a status message to the console during startup to tell you whe
     [LeaderOS-SessionCheck] LimboAuth entegrasyonu etkin.
     ```
 
-    This message means LeaderOS SessionCheck found the LimboAuth plugin, resolved the `removePlayerFromCache` method, and is ready to clear sessions. No action needed.
+    This message means LeaderOS SessionCheck found the LimboAuth plugin and is ready to clear sessions on password change. No action needed.
   </Tab>
   <Tab title="Plugin Not Found">
     ```

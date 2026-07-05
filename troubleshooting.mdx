@@ -54,10 +54,10 @@ Before digging into a specific issue, enable verbose logging by setting `debug: 
        - `name` — the name of the LeaderOS database
        - `username` and `password` — the credentials for that database user
 
-    2. Confirm the MySQL user has the necessary privileges on the LeaderOS database. At minimum, the user needs `SELECT`, `INSERT`, and `DELETE`. Grant them with:
+    2. Confirm the MySQL user has the necessary privileges on the LeaderOS database. At minimum, the user needs `SELECT` and `DELETE`. Grant them with:
 
     ```sql
-    GRANT SELECT, INSERT, DELETE ON leaderos.* TO 'your_user'@'%';
+    GRANT SELECT, DELETE ON leaderos.* TO 'your_user'@'%';
     FLUSH PRIVILEGES;
     ```
 
@@ -108,7 +108,7 @@ Before digging into a specific issue, enable verbose logging by setting `debug: 
 
     **5. The player must be online during a poll**
 
-    If the player disconnects before the plugin's next poll, no kick is issued. However, the row is still deleted from `PasswordResets` during that poll — see the [FAQ](/faq) for details on offline-player behavior.
+    If the player is offline when the plugin polls, no kick is issued. The row is still deleted from `PasswordResets` on that same cycle — see the [FAQ](/faq) for details on offline-player behavior.
 
     **6. Enable debug mode**
 
@@ -154,13 +154,13 @@ Before digging into a specific issue, enable verbose logging by setting `debug: 
 
     **5. Enable debug mode and watch for session-clear confirmations**
 
-    With `debug: true` in `config.yml`, each successful session removal logs:
+    With `debug: true` in `config.yml`, each successful session removal logs a line like:
 
     ```
-    LimboAuth session temizlendi: <username>
+    LimboAuth session temizlendi: PlayerName
     ```
 
-    If this line is absent, the `invalidateSession` call is not reaching LimboAuth — look for a preceding warning in the same log.
+    If this line is absent, the session-clear call is not reaching LimboAuth — look for a preceding warning in the same log.
   </Accordion>
 
   <Accordion title="Kick message not appearing or showing raw MiniMessage tags">
