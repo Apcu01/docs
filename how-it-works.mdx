@@ -1,0 +1,53 @@
+---
+title: "How LeaderOS SessionCheck Detects and Terminates Sessions"
+sidebarTitle: "How It Works"
+description: "Learn how LeaderOS SessionCheck polls the PasswordResets database table, identifies online players, kicks them, and clears their LimboAuth session."
+---
+
+LeaderOS SessionCheck works by treating a shared MySQL table as a lightweight message queue between the LeaderOS web panel and the Velocity proxy. When a player changes or resets their password on the website, a PHP controller inserts their username into the `PasswordResets` table. The plugin polls that table on a fixed schedule, acts on every pending entry it finds, and then deletes those entries so they are never processed more than once. The whole cycle — from detection to kick to cleanup — runs asynchronously, so your proxy remains fully responsive throughout.
+
+## The PasswordResets Table
+
+The `PasswordResets` table is the single point of communication between LeaderOS and the plugin. It lives in the same MySQL database as the rest of your LeaderOS data and has a minimal schema: an auto-incrementing `id` used for targeted batch deletion, a `username` column holding the Minecraft username of the affected player, and a `date` column that records when the password event occurred.
+
+```sql
+CREATE TABLE IF NOT EXISTS `PasswordResets` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(255) NOT NULL,
+  `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  PRIMARY KEY(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+Rows accumulate in this table whenever players interact with the password change or password reset flows in the web panel. The plugin is responsible for consuming and removing them; no other cleanup is required.
+
+## Detection Loop
+
+Every `check-interval-seconds` (default: **60 seconds**), Velocity's scheduler fires the plugin's `ResetService.run()` method. The method uses an atomic flag to ensure that if a previous check is still running — for example, due to a slow database response — the new invocation is skipped entirely rather than running concurrently and processing the same rows twice.
+
+Inside each invocation, the plugin performs the following steps for every row returned by `SELECT id, username FROM PasswordResets`:
+
+1. If **LimboAuth integration is enabled**, the plugin calls `LimboAuthHook.invalidateSession(username)`, which internally calls `LimboAuth.removePlayerFromCache(username)` to wipe the stored authentication session for that username.
+2. The plugin looks up the username against the set of currently connected players via `ProxyServer.getPlayer(username)`.
+3. If the player **is online**, the plugin calls `player.disconnect(kickComponent)`, immediately terminating their connection with the configured kick message (rendered via MiniMessage).
+4. If the player **is not online**, the session cache is still cleared (step 1) so that the next login attempt requires fresh authentication — no kick is necessary because there is no active connection to close.
+5. After all records in the batch are processed, the plugin executes a batched `DELETE FROM PasswordResets WHERE id = ?` to remove exactly the rows it just handled.
+
+All database operations — the initial `SELECT` and the subsequent batch `DELETE` — are wrapped in a `CompletableFuture.supplyAsync` chain, so they never block Velocity's main event loop.
+
+## Flow Diagram
+
+Here is the end-to-end sequence from a password event to a clean game session:
+
+1. **Player changes or resets their password** on the LeaderOS web panel.
+2. **LeaderOS PHP controller** (either `SettingsController.php` or `ResetPasswordController.php`) inserts the player's username into the `PasswordResets` table.
+3. **Plugin polls the table** at the configured interval (default 60 seconds) and retrieves all pending rows.
+4. **If LimboAuth is enabled**, the plugin calls `removePlayerFromCache(username)` to immediately invalidate the authentication session in memory.
+5. **If the player is online**, the plugin disconnects them with the configured kick message.
+6. **Plugin deletes the processed rows** from `PasswordResets` via a batched SQL `DELETE`, completing the cycle.
+
+## Performance
+
+All database interactions inside `ResetService` run inside a `CompletableFuture.supplyAsync` chain scheduled through Velocity's built-in task scheduler. This means the `SELECT` query and the follow-up batch `DELETE` are executed on a background thread pool — the proxy's event loop thread is never blocked waiting on network I/O to the database server.
+
+Underlying all database connectivity is **HikariCP**, a high-performance JDBC connection pool. The plugin maintains a small, reusable pool of MySQL connections (configurable via `pool-size`, default **3**) and caches prepared statements, so each polling cycle reuses an already-open connection rather than incurring the overhead of establishing a new one. Together, async execution and connection pooling ensure that even a very short poll interval has negligible impact on proxy throughput.

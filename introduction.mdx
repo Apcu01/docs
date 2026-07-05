@@ -1,0 +1,48 @@
+---
+title: "LeaderOS SessionCheck: Automatic Session Invalidation for Minecraft"
+sidebarTitle: "Introduction"
+description: "LeaderOS SessionCheck protects player accounts by kicking active game sessions the moment a password is changed or reset on the web panel."
+---
+
+LeaderOS SessionCheck is a Velocity proxy plugin that bridges a critical security gap between your LeaderOS web panel and your Minecraft server. When a player changes or resets their password through the website, the plugin immediately kicks them from the game server and — optionally — clears their LimboAuth session, ensuring no unauthorised person can continue playing on a compromised account.
+
+## The Problem
+
+LeaderOS provides a full-featured web panel where players can change their passwords and use a forgot-password reset flow. However, by default, nothing connects that web action to the running Velocity proxy. A player who has had their account stolen can change the password on the website, yet the thief remains logged in on the game server without interruption — completely unaffected by the credential update. There is no built-in mechanism in either LeaderOS or Velocity to propagate a web-side password change into an active game session.
+
+## The Solution
+
+LeaderOS SessionCheck fills that gap by continuously polling a shared MySQL database table called `PasswordResets`. When a password change or reset is triggered on the web panel, the LeaderOS PHP code inserts the affected player's username into that table. The plugin picks up the entry on its next scheduled check, kicks the player from the Velocity proxy with a configurable message, and — if LimboAuth integration is enabled — calls `LimboAuth.removePlayerFromCache(username)` to wipe the authentication session cache as well. Once all in-game actions are complete, the plugin deletes the row from the database so it is never processed twice.
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Automatic Kick" icon="user-slash">
+    Any player whose username appears in the `PasswordResets` table is immediately disconnected from the Velocity proxy with a fully configurable kick message rendered with MiniMessage formatting.
+  </Card>
+  <Card title="LimboAuth Integration" icon="shield-check">
+    When `limboauth: true` is set in the config, the plugin removes the player from LimboAuth's session cache via `removePlayerFromCache`, forcing full re-authentication on the next login attempt.
+  </Card>
+  <Card title="Async Performance" icon="bolt">
+    Every database query and deletion runs inside a `CompletableFuture` on Velocity's async scheduler. The proxy event loop is never blocked, keeping your server responsive under any load.
+  </Card>
+  <Card title="Configurable Interval" icon="clock">
+    The `check-interval-seconds` setting controls how often the `PasswordResets` table is polled. The default is 60 seconds — low enough to react promptly, high enough to stay gentle on the database.
+  </Card>
+  <Card title="Custom Kick Message" icon="message">
+    The kick message is defined as a MiniMessage string, giving you full control over colours, formatting, and wording. The default message tells the player their password was changed and to log in again.
+  </Card>
+  <Card title="MySQL Connection Pool" icon="database">
+    The plugin uses HikariCP to maintain a pool of reusable MySQL connections, keeping connection overhead near zero even when the check fires every few seconds on a busy server.
+  </Card>
+</CardGroup>
+
+## Requirements
+
+Before installing LeaderOS SessionCheck, make sure your environment meets the following requirements:
+
+- **Velocity proxy** version 3.x or newer
+- **LeaderOS web software** installed and running on a web server
+- **MySQL database** accessible by both the LeaderOS web application and the Velocity proxy (they must share the same database instance)
+- **Java 21** or newer on the machine running the Velocity proxy
+- *(Optional)* **LimboAuth plugin** installed on the Velocity proxy if you want session cache invalidation in addition to the kick

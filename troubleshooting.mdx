@@ -1,0 +1,227 @@
+---
+title: "Troubleshoot LeaderOS SessionCheck Installation Issues"
+sidebarTitle: "Troubleshooting"
+description: "Diagnose and fix common LeaderOS SessionCheck problems: database connection failures, players not being kicked, LimboAuth not clearing, and PHP patch issues."
+---
+
+Before digging into a specific issue, enable verbose logging by setting `debug: true` in `plugins/leaderos-sessioncheck/config.yml` and restarting Velocity. With debug mode on, the plugin writes detailed step-by-step output for every poll cycle, every player it processes, and every LimboAuth operation it attempts. All plugin output — including these debug messages — appears in the Velocity console and is saved to the `logs/` directory of your Velocity installation.
+
+<AccordionGroup>
+
+  <Accordion title='Plugin disabled on startup — "config.yml yüklenemedi"'>
+    This error means the plugin could not load its configuration file. The plugin logs `config.yml yüklenemedi, eklenti devre dışı.` and then shuts itself down.
+
+    **Steps to fix:**
+
+    1. Confirm the file exists at `plugins/leaderos-sessioncheck/config.yml`. If the directory or file is missing, the plugin should generate it on first startup — check that Velocity has write permission to the `plugins/` directory.
+    2. Open the file in a plain-text editor and check for YAML syntax errors. Common mistakes include:
+       - Tab characters used for indentation (YAML requires spaces only)
+       - Incorrect indentation levels under `database:`, `settings:`, or `messages:`
+       - Unquoted special characters in string values
+    3. If you cannot identify the syntax error, delete `config.yml` entirely and restart Velocity. The plugin will regenerate a valid default file that you can then edit.
+
+    ```yaml
+    # Example of correct top-level structure
+    database:
+      host: "localhost"
+      port: 3306
+      name: "leaderos"
+      username: "root"
+      password: ""
+      pool-size: 3
+      connection-timeout: 10000
+      use-ssl: false
+
+    settings:
+      check-interval-seconds: 60
+      debug: false
+
+    limboauth: true
+
+    messages:
+      kick-message: "<red>Şifreniz değiştirildi. Lütfen yeni şifrenizle tekrar giriş yapın.</red>"
+    ```
+  </Accordion>
+
+  <Accordion title='Plugin disabled on startup — "Veritabanı bağlantısı kurulamadı"'>
+    This error means the plugin started but could not establish a connection to MySQL. The plugin logs `Veritabanı bağlantısı kurulamadı, eklenti devre dışı.` and then shuts itself down.
+
+    **Steps to fix:**
+
+    1. Open `plugins/leaderos-sessioncheck/config.yml` and verify the following values match your MySQL server exactly:
+       - `host` — the hostname or IP address of the MySQL server
+       - `port` — default is `3306`
+       - `name` — the name of the LeaderOS database
+       - `username` and `password` — the credentials for that database user
+
+    2. Confirm the MySQL user has the necessary privileges on the LeaderOS database. At minimum, the user needs `SELECT`, `INSERT`, and `DELETE`. Grant them with:
+
+    ```sql
+    GRANT SELECT, INSERT, DELETE ON leaderos.* TO 'your_user'@'%';
+    FLUSH PRIVILEGES;
+    ```
+
+    3. Verify the MySQL server is running and reachable from the machine running Velocity. If the proxy and database are on separate hosts, check firewall rules — port `3306` must be open between the two.
+
+    4. Check the `connection-timeout` value (default `10000` ms = 10 seconds). If your database server is slow to respond, try increasing it to `15000` or `20000`.
+
+    <Warning>
+      Setting `use-ssl: true` without a properly configured SSL certificate on the MySQL server will also cause the connection to fail. Keep `use-ssl: false` unless you have explicitly set up MySQL SSL.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Players are not being kicked after a password change">
+    If the plugin starts successfully but players are not getting kicked when their password is changed on the web panel, work through each of the following checks in order.
+
+    **1. Confirm the `PasswordResets` table exists**
+
+    Connect to your MySQL database and run:
+
+    ```sql
+    SHOW TABLES;
+    ```
+
+    You should see `PasswordResets` in the list. If it is missing, the PHP patches have not created the table yet — re-apply the patches and save.
+
+    **2. Verify the PHP patches were applied correctly**
+
+    The LeaderOS web panel must write a row to `PasswordResets` when a password is changed or reset. Confirm that both of the following files have been patched and saved:
+
+    - `SettingsController.php` — handles password changes from the account settings page
+    - `ResetPasswordController.php` — handles password resets via email / reset flow
+
+    After editing each file, clear any PHP opcode cache (e.g., OPcache) and reload the web server.
+
+    **3. Manually confirm a row is inserted after a password change**
+
+    Trigger a password change on the web panel, then immediately run:
+
+    ```sql
+    SELECT * FROM PasswordResets;
+    ```
+
+    A row with the player's username should appear. If no row appears, the PHP patch is not executing correctly.
+
+    **4. Account for the polling interval**
+
+    The plugin checks the database once every `check-interval-seconds` (default: `60`). After a password change, there can be up to a 60-second delay before the kick fires. Wait at least that long before concluding the plugin is not working.
+
+    **5. The player must be online during a poll**
+
+    If the player disconnects before the plugin's next poll, no kick is issued. However, the row is still deleted from `PasswordResets` during that poll — see the [FAQ](/faq) for details on offline-player behavior.
+
+    **6. Enable debug mode**
+
+    Set `debug: true` in `config.yml`, restart Velocity, and watch the console. During each poll cycle you should see messages indicating how many records were fetched and whether each player was found online.
+  </Accordion>
+
+  <Accordion title="LimboAuth sessions are not being cleared">
+    If you have `limboauth: true` in `config.yml` but players can still authenticate without re-entering their password after being kicked, check the following.
+
+    **1. Confirm LimboAuth is installed and running**
+
+    Check the Velocity startup log for LimboAuth's own initialization messages. It must be fully loaded before LeaderOS SessionCheck tries to hook into it.
+
+    **2. Look for the integration confirmation message**
+
+    When LeaderOS SessionCheck loads successfully with LimboAuth present, it logs:
+
+    ```
+    LimboAuth entegrasyonu etkin.
+    ```
+
+    If you see this message, the hook is active.
+
+    **3. Check for the "LimboAuth not found" warning**
+
+    If you see the following warning instead, LimboAuth is not available to the plugin:
+
+    ```
+    limboauth: true ancak LimboAuth bulunamadı; session kaldırma devre dışı.
+    ```
+
+    This means LimboAuth either failed to start or is not installed. Check LimboAuth's own logs for errors.
+
+    **4. Check for the method-not-found warning**
+
+    If LimboAuth is loaded but the plugin cannot find the expected API method, you will see:
+
+    ```
+    LimboAuth.removePlayerFromCache(String) bulunamadı; session kaldırma devre dışı.
+    ```
+
+    This indicates a LimboAuth version incompatibility. Check that you are running a supported version of LimboAuth.
+
+    **5. Enable debug mode and watch for session-clear confirmations**
+
+    With `debug: true` in `config.yml`, each successful session removal logs:
+
+    ```
+    LimboAuth session temizlendi: <username>
+    ```
+
+    If this line is absent, the `invalidateSession` call is not reaching LimboAuth — look for a preceding warning in the same log.
+  </Accordion>
+
+  <Accordion title="Kick message not appearing or showing raw MiniMessage tags">
+    The `kick-message` value is parsed using the [MiniMessage](https://docs.advntr.dev/minimessage/) format. If players see raw text like `<red>Şifreniz değiştirildi...` instead of coloured text, or if no message appears at all, check the following.
+
+    **Ensure tags are balanced and correctly formed**
+
+    Every opening tag must have a matching closing tag:
+
+    ```yaml
+    # Correct
+    kick-message: "<red>Your password was changed. Please log in again.</red>"
+
+    # Incorrect — unclosed tag
+    kick-message: "<red>Your password was changed. Please log in again."
+    ```
+
+    **Ensure the value is a quoted YAML string**
+
+    Angle brackets (`<` and `>`) are safe inside a double-quoted YAML string. Without quotes, some YAML parsers may misinterpret the value:
+
+    ```yaml
+    # Correct — quoted
+    kick-message: "<gold><bold>Password changed!</bold></gold>"
+
+    # Risky — unquoted with special characters
+    kick-message: <gold><bold>Password changed!</bold></gold>
+    ```
+
+    **Test with a minimal message first**
+
+    If you are unsure whether the issue is the YAML or the MiniMessage syntax, temporarily simplify the message:
+
+    ```yaml
+    kick-message: "Password changed. Please reconnect."
+    ```
+
+    If the plain text message works, re-introduce formatting tags one at a time until you identify the problematic tag.
+  </Accordion>
+
+  <Accordion title="Concerns about high database query frequency">
+    LeaderOS SessionCheck is designed to be lightweight. On each poll cycle it executes **one `SELECT` query** against the `PasswordResets` table and, if any rows are found, **one batched `DELETE`** for the affected IDs. If the table is empty — which it is most of the time — only the `SELECT` runs.
+
+    If you still want to reduce database load, increase `check-interval-seconds` in `config.yml`:
+
+    ```yaml
+    settings:
+      check-interval-seconds: 120   # poll every 2 minutes
+      # or
+      check-interval-seconds: 300   # poll every 5 minutes
+    ```
+
+    The default of `60` is a reasonable balance between responsiveness and database load. Keep in mind that a higher interval means a longer maximum delay between a password change and the player being kicked.
+
+    <Tip>
+      If your server has very low traffic, increasing the interval to `300` seconds has virtually no user-facing impact — password changes are infrequent events.
+    </Tip>
+  </Accordion>
+
+</AccordionGroup>
+
+<Note>
+  For additional help, contact the developer on Discord: `apcu`
+</Note>

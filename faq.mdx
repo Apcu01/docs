@@ -1,0 +1,109 @@
+---
+title: "Frequently Asked Questions — LeaderOS SessionCheck"
+sidebarTitle: "FAQ"
+description: "Answers to common questions about LeaderOS SessionCheck: compatibility, session handling, performance, multiple servers, and LimboAuth behavior."
+---
+
+This page answers the most common questions about LeaderOS SessionCheck — covering everything from compatibility and LimboAuth integration to database requirements, timing behaviour, and how to uninstall the plugin cleanly.
+
+<AccordionGroup>
+
+  <Accordion title="Does this plugin work without LimboAuth?">
+    Yes. Set `limboauth: false` in `plugins/leaderos-sessioncheck/config.yml`:
+
+    ```yaml
+    limboauth: false
+    ```
+
+    The plugin will still kick the player from the Velocity proxy when their password changes. It simply skips the step of clearing the LimboAuth authentication cache. This is the correct configuration for any server that does not use LimboAuth as its authentication plugin.
+  </Accordion>
+
+  <Accordion title="How long does it take for a player to be kicked after a password change?">
+    The maximum delay is equal to the `check-interval-seconds` value in your config (default: **60 seconds**). The plugin polls the `PasswordResets` table on this fixed interval, so in the worst case a player is kicked just under one full interval after the password change is submitted on the web panel.
+
+    You can reduce the interval for a faster response:
+
+    ```yaml
+    settings:
+      check-interval-seconds: 10   # kick within ~10 seconds
+    ```
+
+    The minimum is `1` second, but be mindful that a very low interval increases the frequency of database queries. For most servers, the default of `60` is a good balance.
+  </Accordion>
+
+  <Accordion title="What happens if the player is offline when their password is changed?">
+    If the player is not connected to the proxy at the time the plugin polls, no kick is issued — there is no one to kick. However, the row in `PasswordResets` is **not** deleted in this case; it stays in the table.
+
+    On the next poll cycle, the plugin checks again. If the player is still offline, the same row remains. This continues until the player reconnects and is online during a poll, at which point they are kicked immediately on that cycle and the row is then deleted.
+
+    <Warning>
+      There is no automatic expiry for rows in `PasswordResets`. If a player never reconnects, their row remains indefinitely. This is intentional — it ensures that even players who log in much later are still forced to re-authenticate with their new password.
+    </Warning>
+  </Accordion>
+
+  <Accordion title="Can this plugin run on Paper, Spigot, or BungeeCord?">
+    No. LeaderOS SessionCheck is built exclusively for **Velocity 3.x**. It uses the Velocity plugin API, Velocity's dependency injection system, and Velocity's task scheduler — none of which are available on Paper, Spigot, or BungeeCord. Attempting to load the `.jar` on any of those platforms will fail. Install the plugin only on your Velocity proxy.
+  </Accordion>
+
+  <Accordion title="Do I need to install this plugin on every backend server?">
+    No. Install LeaderOS SessionCheck on your **Velocity proxy only**. The plugin intercepts the player connection at the proxy level — before traffic reaches any backend server. Your Paper or Spigot backend servers do not need the plugin and should not have it.
+  </Accordion>
+
+  <Accordion title="Will a kicked player be kicked again when they reconnect?">
+    No. The plugin deletes the `PasswordResets` row immediately after kicking the player (or after confirming the row was processed). On the next poll cycle, that row is gone, so the plugin takes no action against that player again.
+
+    When the player reconnects, they will be prompted to authenticate with their new password by LimboAuth (or whichever authentication plugin you use). If they enter the correct new password, they proceed normally.
+  </Accordion>
+
+  <Accordion title="What MySQL privileges does the database user need?">
+    The database user configured in `config.yml` needs the following privileges on the LeaderOS database:
+
+    | Privilege  | Table            | Reason                                      |
+    |------------|------------------|---------------------------------------------|
+    | `SELECT`   | `PasswordResets` | Fetch pending reset rows on each poll       |
+    | `DELETE`   | `PasswordResets` | Remove processed rows after acting on them  |
+
+    The simplest approach is to grant full access to the LeaderOS database:
+
+    ```sql
+    GRANT SELECT, INSERT, DELETE ON leaderos.* TO 'your_user'@'%';
+    FLUSH PRIVILEGES;
+    ```
+
+    If you prefer a minimal-privilege setup, restrict the grant to the `PasswordResets` table only.
+  </Accordion>
+
+  <Accordion title="Is there a command to force-check the database immediately?">
+    No. The current version of LeaderOS SessionCheck does not provide any in-game or console commands. Checks happen automatically on the configured interval.
+
+    If you need to trigger an immediate check — for example, during testing — temporarily set `check-interval-seconds` to `1` in `config.yml` and restart Velocity. Once you have confirmed the behaviour, restore the value to your preferred interval and restart again.
+  </Accordion>
+
+  <Accordion title="The plugin shows Turkish messages in the console — is this normal?">
+    Yes, this is completely normal. The plugin's internal log messages are written in Turkish (the developer's native language). Messages such as `LimboAuth entegrasyonu etkin.` or `Oyuncu kickleniyor:` are informational console output only — they are never shown to players.
+
+    The only message that players ever see is the `kick-message` value in your `config.yml`, and you can set that to any language or text you like:
+
+    ```yaml
+    messages:
+      kick-message: "<red>Your password was changed. Please log in with your new password.</red>"
+    ```
+  </Accordion>
+
+  <Accordion title="How do I uninstall the plugin?">
+    Follow these steps to remove LeaderOS SessionCheck completely:
+
+    1. **Stop Velocity.**
+    2. **Remove the plugin JAR** from the `plugins/` directory of your Velocity installation.
+    3. **Optionally remove the config directory** at `plugins/leaderos-sessioncheck/`.
+    4. **Revert the PHP patches** in `SettingsController.php` and `ResetPasswordController.php` on your LeaderOS web panel installation, then reload the web server.
+    5. **Optionally drop the `PasswordResets` table** from your database if you no longer need it:
+
+    ```sql
+    DROP TABLE IF EXISTS PasswordResets;
+    ```
+
+    6. **Start Velocity.** The plugin will no longer load.
+  </Accordion>
+
+</AccordionGroup>

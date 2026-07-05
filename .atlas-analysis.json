@@ -1,0 +1,61 @@
+{
+  "projectType": "general",
+  "projectName": "LeaderOS SessionCheck",
+  "projectDescription": "A Velocity proxy plugin that automatically kicks players and invalidates their LimboAuth sessions when their password is changed or reset via the LeaderOS web panel.",
+  "theme": "aspen",
+  "primaryColor": "#2D7D46",
+  "lightColor": "#4CAF72",
+  "darkColor": "#1A5C32",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "how-it-works",
+          "installation"
+        ]
+      },
+      {
+        "group": "Configuration",
+        "pages": [
+          "configuration",
+          "limboauth-integration"
+        ]
+      },
+      {
+        "group": "Help",
+        "pages": [
+          "troubleshooting",
+          "faq"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Automatically kicks online players when their password is changed or reset via LeaderOS",
+    "Invalidates LimboAuth sessions to prevent unauthorized access after a password change",
+    "Asynchronous database polling — zero impact on proxy performance",
+    "Configurable check interval for how often the database is queried",
+    "Customizable kick message with MiniMessage formatting support",
+    "Optional LimboAuth integration (can be disabled for servers not using LimboAuth)",
+    "MySQL connection pooling via HikariCP for efficient database access"
+  ],
+  "publicApiSurface": [
+    "config.yml: database.host",
+    "config.yml: database.port",
+    "config.yml: database.name",
+    "config.yml: database.username",
+    "config.yml: database.password",
+    "config.yml: database.pool-size",
+    "config.yml: database.connection-timeout",
+    "config.yml: database.use-ssl",
+    "config.yml: settings.check-interval-seconds",
+    "config.yml: settings.debug",
+    "config.yml: limboauth",
+    "config.yml: messages.kick-message",
+    "SQL: PasswordResets table (id, username, date)",
+    "LeaderOS SettingsController.php patch (password change hook)",
+    "LeaderOS ResetPasswordController.php patch (password reset hook)"
+  ]
+}
